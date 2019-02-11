@@ -361,7 +361,7 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
                         kaptApOptions, filesystem.resolve(kaptGenerated).toString()))
             .add(JAVAC_ARG + encodeOptions(Collections.emptyMap()))
             .add(LIGHT_ANALYSIS + "true") // TODO: Provide value as argument
-            .add(CORRECT_ERROR_TYPES + "false") // TODO: Provide value as argument
+            .add(CORRECT_ERROR_TYPES + "true") // TODO: Provide value as argument
             .add(VERBOSE_ARG + "true") // TODO: Provide value as argument
             .build();
     String join = Joiner.on(",").join(kaptPluginOptions);
