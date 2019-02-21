@@ -24,6 +24,7 @@ import com.facebook.buck.core.model.BuildTarget;
 import com.facebook.buck.core.model.impl.BuildTargetPaths;
 import com.facebook.buck.core.rulekey.AddToRuleKey;
 import com.facebook.buck.core.rulekey.AddsToRuleKey;
+import com.facebook.buck.core.sourcepath.SourcePath;
 import com.facebook.buck.core.sourcepath.resolver.SourcePathResolver;
 import com.facebook.buck.io.BuildCellRelativePath;
 import com.facebook.buck.io.filesystem.FileExtensionMatcher;
@@ -66,6 +67,7 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
 
   @AddToRuleKey private final Kotlinc kotlinc;
   @AddToRuleKey private final ImmutableList<String> extraKotlincArguments;
+  @AddToRuleKey private final ImmutableList<SourcePath> friendPaths;
   @AddToRuleKey private final AnnotationProcessingTool annotationProcessingTool;
   @AddToRuleKey private final ExtraClasspathProvider extraClassPath;
   @AddToRuleKey private final Javac javac;
@@ -103,12 +105,14 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
   KotlincToJarStepFactory(
       Kotlinc kotlinc,
       ImmutableList<String> extraKotlincArguments,
+      ImmutableList<SourcePath> friendPaths,
       AnnotationProcessingTool annotationProcessingTool,
       ExtraClasspathProvider extraClassPath,
       Javac javac,
       JavacOptions javacOptions) {
     this.kotlinc = kotlinc;
     this.extraKotlincArguments = extraKotlincArguments;
+    this.friendPaths = friendPaths;
     this.annotationProcessingTool = annotationProcessingTool;
     this.extraClassPath = extraClassPath;
     this.javac = javac;
@@ -178,6 +182,8 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
               .addAll(kotlinc.getHomeLibraries(buildContext.getSourcePathResolver()))
               .build();
 
+      String friendPathsArg = getFriendsPath(buildContext.getSourcePathResolver(), friendPaths);
+
       if (generatingCode && annotationProcessingTool.equals(AnnotationProcessingTool.KAPT)) {
         addKaptGenFolderStep(
             invokingRule,
@@ -188,6 +194,7 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
             pathToSrcsList,
             allClasspaths,
             extraKotlincArguments,
+            friendPathsArg,
             kaptGeneratedOutput,
             stubsOutput,
             incrementalDataOutput,
@@ -229,6 +236,7 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
               kotlinc.getHomeLibraries(buildContext.getSourcePathResolver()),
               ImmutableList.<String>builder()
                   .addAll(extraKotlincArguments)
+                  .add(friendPathsArg)
                   .add(NO_STDLIB)
                   .add(NO_REFLECT)
                   .add(COMPILER_BUILTINS)
@@ -299,7 +307,8 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
       ImmutableSortedSet<Path> sourceFilePaths,
       Path pathToSrcsList,
       Iterable<? extends Path> declaredClasspathEntries,
-      ImmutableList<String> extraArguments,
+      ImmutableList<String> extraKotlincArguments,
+      String friendPathsArg,
       Path kaptGenerated,
       Path stubsOutput,
       Path incrementalData,
@@ -361,7 +370,8 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
             kotlinc,
             kotlinc.getHomeLibraries(resolver),
             ImmutableList.<String>builder()
-                .addAll(extraArguments)
+                .addAll(extraKotlincArguments)
+                .add(friendPathsArg)
                 .add(MODULE_NAME)
                 .add(invokingRule.getShortNameAndFlavorPostfix())
                 .add(COMPILER_BUILTINS)
@@ -390,7 +400,8 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
             kotlinc,
             kotlinc.getHomeLibraries(resolver),
             ImmutableList.<String>builder()
-                .addAll(extraArguments)
+                .addAll(extraKotlincArguments)
+                .add(friendPathsArg)
                 .add(MODULE_NAME)
                 .add(invokingRule.getShortNameAndFlavorPostfix())
                 .add(COMPILER_BUILTINS)
@@ -434,6 +445,24 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private String getFriendsPath(
+      SourcePathResolver sourcePathResolver, ImmutableList<SourcePath> friendPathsSourcePaths) {
+    if (friendPathsSourcePaths.isEmpty()) {
+      return "";
+    }
+
+    // https://youtrack.jetbrains.com/issue/KT-29933
+    ImmutableSortedSet<String> absoluteFriendPaths =
+        ImmutableSortedSet.copyOf(
+            friendPathsSourcePaths
+                .stream()
+                .map(path -> sourcePathResolver.getAbsolutePath(path).toString())
+                .collect(Collectors.toSet()));
+
+    return "-Xfriend-paths="
+        + absoluteFriendPaths.stream().reduce("", (path1, path2) -> path1 + "," + path2);
   }
 
   @Override
