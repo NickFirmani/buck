@@ -60,18 +60,18 @@ public class KotlinLibraryDescription
       ImmutableSet.of(JavaLibrary.SRC_JAR, JavaLibrary.MAVEN_JAR);
 
   private final ToolchainProvider toolchainProvider;
-  private final KotlinBuckConfig kotlinBuckConfig;
   private final JavaBuckConfig javaBuckConfig;
   private final JavacFactory javacFactory;
+  private final KotlinConfiguredCompilerFactory compilerFactory;
 
   public KotlinLibraryDescription(
       ToolchainProvider toolchainProvider,
       KotlinBuckConfig kotlinBuckConfig,
       JavaBuckConfig javaBuckConfig) {
     this.toolchainProvider = toolchainProvider;
-    this.kotlinBuckConfig = kotlinBuckConfig;
     this.javaBuckConfig = javaBuckConfig;
     this.javacFactory = JavacFactory.getDefault(toolchainProvider);
+    this.compilerFactory = new KotlinConfiguredCompilerFactory(kotlinBuckConfig, javacFactory);
   }
 
   @Override
@@ -141,10 +141,9 @@ public class KotlinLibraryDescription
                 params,
                 graphBuilder,
                 context.getCellPathResolver(),
-                kotlinBuckConfig,
+                compilerFactory,
                 javaBuckConfig,
-                args,
-                javacFactory)
+                args)
             .setJavacOptions(javacOptions)
             .build();
 
@@ -178,6 +177,7 @@ public class KotlinLibraryDescription
       ImmutableCollection.Builder<BuildTarget> extraDepsBuilder,
       ImmutableCollection.Builder<BuildTarget> targetGraphOnlyDepsBuilder) {
     javacFactory.addParseTimeDeps(targetGraphOnlyDepsBuilder, constructorArg);
+    compilerFactory.addTargetDeps(extraDepsBuilder, targetGraphOnlyDepsBuilder);
   }
 
   public enum AnnotationProcessingTool {
