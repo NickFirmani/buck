@@ -16,11 +16,7 @@
 
 package com.facebook.buck.jvm.kotlin;
 
-
-import static com.google.common.collect.Iterables.transform;
-
 import com.facebook.buck.core.build.execution.context.ExecutionContext;
-
 
 import com.facebook.buck.core.exceptions.HumanReadableException;
 import com.facebook.buck.core.model.BuildTarget;
@@ -222,24 +218,13 @@ public class JarBackedReflectedKotlinc implements Kotlinc {
       ClassLoader classLoader =
           classLoaderCache.getClassLoaderForClassPath(
               SynchronizedToolProvider.getSystemToolClassLoader(),
-<<<<<<< HEAD
-              ImmutableList.copyOf(
-                  compilerClassPath
-                      .stream()
-                      .map(p -> ((PathSourcePath) p).getRelativePath())
-                      .map(PATH_TO_URL)
-                      .iterator()));
-=======
-// <<<<<<< HEAD
               // ImmutableList.copyOf(
-              //     compilerClassPath.stream()
+              //     compilerClassPath
+              //         .stream()
               //         .map(p -> ((PathSourcePath) p).getRelativePath())
               //         .map(PATH_TO_URL)
               //         .iterator()));
-// =======
               ImmutableList.copyOf(kotlinHomeLibraries.stream().map(PATH_TO_URL).iterator()));
-// >>>>>>> of 01ae6e7c43... Revert "[buck][PR] Make kotlin_home buck config support specifying source path."
->>>>>>> Revert "Revert "[buck][PR] Make kotlin_home buck config support specifying source path.""
 
       return classLoader.loadClass(COMPILER_CLASS).newInstance();
     } catch (Exception ex) {

@@ -16,9 +16,6 @@
 
 package com.facebook.buck.jvm.kotlin;
 
-
-import com.facebook.buck.core.model.TargetConfiguration;
-
 import com.facebook.buck.core.model.BuildTarget;
 
 import com.facebook.buck.core.rules.BuildRuleResolver;

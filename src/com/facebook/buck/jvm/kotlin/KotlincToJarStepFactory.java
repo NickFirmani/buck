@@ -70,7 +70,7 @@ public class KotlincToJarStepFactory extends CompileToJarStepFactory implements 
   @AddToRuleKey private final ExtraClasspathProvider extraClassPath;
   @AddToRuleKey private final Javac javac;
   @AddToRuleKey private final JavacOptions javacOptions;
-  private final ImmutableSortedSet<Path> kotlinHomeLibraries;
+  // private final ImmutableSortedSet<Path> kotlinHomeLibraries;
 
   private static final String COMPILER_BUILTINS = "-Xadd-compiler-builtins";
   private static final String LOAD_BUILTINS_FROM = "-Xload-builtins-from-dependencies";
