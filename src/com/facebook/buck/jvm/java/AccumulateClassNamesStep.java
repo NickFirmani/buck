@@ -175,7 +175,7 @@ public class AccumulateClassNamesStep implements Step {
       if (existing != null && !existing.equals(value)) {
         throw new IllegalArgumentException(
             String.format(
-                "Multiple entries with same key but differing values: %1$s=%2$s and %1$s=%3$s",
+                "[Test naming issue, try removing spaces/backticks, https://github.com/facebook/buck/issues/1621 ]: Multiple entries with same key but differing values: %1$s=%2$s and %1$s=%3$s",
                 key, value, existing));
       }
     }
