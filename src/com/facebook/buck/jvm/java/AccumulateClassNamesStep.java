@@ -163,11 +163,13 @@ public class AccumulateClassNamesStep implements Step {
 
     for (String line : lines) {
       List<String> parts = CLASS_NAME_AND_HASH_SPLITTER.splitToList(line);
-      // if (parts.size() != 2) {
-      //   throw new RuntimeException(String.join(",", parts));
-      // }
-      // Preconditions.checkState(parts.size() == 2);
-      String key = parts.get(0);
+            String hash = parts.get(parts.size() - 1);
+      String key;
+      if (parts.size() != 2) {
+          key = String.join(",", parts.subList(0, parts.size() - 2));
+      } else {
+          key = parts.get(0);
+      }
       HashCode value = HashCode.fromString(parts.get(parts.size() - 1));
       HashCode existing = classNames.putIfAbsent(key, value);
       if (existing != null && !existing.equals(value)) {
